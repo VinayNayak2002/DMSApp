@@ -8,11 +8,14 @@ import {
     Alert,
 } from 'react-native';
 import { generateOtp, validateOtp } from '../services/api';
+import { saveToken } from '../services/storage';
+import { useNavigation } from '@react-navigation/native';
 
 export default function LoginScreen() {
     const [mobile, setMobile] = useState('');
     const [otpSent, setOtpSent] = useState(false);
     const [otp, setOtp] = useState('');
+    const navigation = useNavigation();
 
     const handleSendOtp = async () => {
         if (mobile.trim().length !== 10) {
@@ -21,12 +24,16 @@ export default function LoginScreen() {
         }
 
         try {
-            await generateOtp(mobile);
-            setOtpSent(true);
-            Alert.alert('OTP Sent', `OTP has been generated for ${mobile}`);
+            const data = await generateOtp(mobile);
+            if (data.status) {
+                setOtpSent(true);
+                Alert.alert('OTP Sent', data.data);
+            } else {
+                Alert.alert('Error', 'Failed to generate OTP');
+            }
         } catch (error) {
             console.log(error);
-            Alert.alert('Error', 'Failed to send OTP');
+            Alert.alert('Error', 'Failed to generate OTP');
         }
     };
 
@@ -37,8 +44,15 @@ export default function LoginScreen() {
         }
 
         try {
-            await validateOtp(mobile, otp);
-            Alert.alert('OTP Verified', `Mobile: ${mobile}, OTP: ${otp}`);
+            const data = await validateOtp(mobile, otp);
+            if (data.token) {
+                await saveToken(data.token);
+                Alert.alert('OTP Verified', `Welcome ${data.user.user_name}`, [
+                    { text: 'OK', onPress: () => navigation.replace('Home') },
+                ]);
+            } else {
+                Alert.alert('Invalid OTP', 'Please enter the correct OTP');
+            }
         } catch (error) {
             console.log(error);
             Alert.alert('Error', 'Failed to verify OTP');
