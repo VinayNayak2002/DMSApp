@@ -1,97 +1,142 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native Document Management System (DMS)
 
-# Getting Started
+This is a React Native application for managing documents.  
+It allows users to log in using OTP, upload files with categories and tags, search documents, preview them, and download.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+---
+## Project Setup
+- Initialized with `npx @react-native-community/cli@latest init DMSApp`.
+- Navigation implemented using `@react-navigation/native`.
+- Project organized into `navigation`, `screens`, and `services`.
 
-## Step 1: Start Metro
+## Project Structure
+### Main Entry (App.jsx)
+App.jsx - Main entry, wraps AuthProvider and AppNavigator
+src/
+├── navigation/
+│ └── AppNavigator.js # Handles navigation between screens
+├── context/
+│ └── authContext.js # Authentication state management
+├── screens/
+│ ├── LoginScreen.js # Login with OTP
+│ ├── HomeScreen.js # Dashboard after login
+│ ├── UploadScreen.js # Upload documents with metadata
+│ ├── SearchScreen.js # Search documents by filters
+│ └── PreviewScreen.js # Preview image/pdf
+├── services/
+│ ├── api.js # API base config
+│ ├── uploadService.js # File upload logic
+│ ├── searchService.js # Document search logic
+│ └── authService.js # OTP generation and validation
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+## Features Implemented
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+- **OTP-Based Login**  
+  - Implemented a login screen allowing users to enter their mobile number.  
+  - Added OTP input and validation interface.  
+  - Successfully stores a token after OTP verification.
 
-```sh
-# Using npm
-npm start
+- **File Upload Component**  
+  - Implemented file upload functionality for images and PDFs.  
+  - Added a Date Picker for selecting document date.  
+  - Created dynamic dropdowns for category selection:  
+    - Major category: Personal / Professional  
+    - Minor category: Names or Departments depending on the major category selection.  
+  - Added Tag Input Field to allow adding new tags and displaying pre-existing ones.  
+  - Included a text field for remarks.  
+  - Option to select files from gallery or capture using camera.
 
-# OR using Yarn
-yarn start
-```
+- **File Search**  
+  - Developed a search interface with category selection, tag input, and date range filters.  
+  - Search API is integrated and returns results,  
+  but filtering is **notfully functional** since the backend is not responding correctly as intended.
+  - Currently, no matter what filters are applied, the backend always returns all records. With the right guidance on **how the API requests are intended to be used**, this functionality can be completed as expected.
 
-## Step 2: Build and run your app
+- **File Preview and Download**  
+  - Displayed search results in a list format. 
+  - Preview implemented, but not working fully since the file URI from the API is not behaving as intended.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+- **Navigation and State Management**  
+  - Implemented navigation across screens using React Navigation.  
+  - Managed application state using React Context API to maintain user session and document data.
+  - Provides `login`, `logout`.
 
-### Android
+---
 
-```sh
-# Using npm
-npm run android
+## Installation & Running
 
-# OR using Yarn
-yarn android
-```
+1. Clone the repository
 
-### iOS
+   ```bash
+   git clone <your-repo-url>
+   ```
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+2. Navigate into the project folder
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+   ```bash
+   cd DMSApp
+   ```
 
-```sh
-bundle install
-```
+3. Install dependencies
 
-Then, and every time you update your native dependencies, run:
+   ```bash
+   npm install
+   ```
 
-```sh
-bundle exec pod install
-```
+4. Run the app
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+   * For Android:
 
-```sh
-# Using npm
-npm run ios
+     ```bash
+     npx react-native run-android
+     ```
 
-# OR using Yarn
-yarn ios
-```
+   * For iOS:
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+     ```bash
+     npx react-native run-ios
+     ```
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+---
 
-## Step 3: Modify your app
+## Features Description
 
-Now that you have successfully run the app, let's make changes!
+### Authentication (authContext.js)
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+* OTP-based login using backend API.
+* Stores user token in context for authenticated requests.
+* Provides login, logout, and isAuthenticated state globally.
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+### UploadScreen.js
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+* Upload files (jpg, png, gif, pdf).
+* Choose:
 
-## Congratulations! :tada:
+  * Date (with DatePicker)
+  * Category (Major Head: Personal / Professional)
+  * Subcategory (Minor Head: Names or Departments depending on category)
+* Add tags (fetched dynamically or created new).
+* Add remarks.
+* Upload via Gallery or Camera.
 
-You've successfully run and modified your React Native App. :partying_face:
+### SearchScreen.js
 
-### Now what?
+* Search with filters:
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+  * Major Head
+  * Minor Head
+  * Tags (multi-select, dynamic search)
+  * Date range
+* Preview implemented, but not working fully since the file URI from the API is not behaving as intended.
 
-# Troubleshooting
+### HomeScreen.js
+* Navigation to Upload, Search, and Logout.
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+---
 
-# Learn More
+## Notes
 
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+- OTP login, document upload, and search API integration are fully functional.
+- Search filtering and preview are partially functional. At present, the search always returns all records regardless of the filters applied. With the right guidance on how the API requests are intended to be used, this functionality can be completed as expected.
+- Download functionality calls the API correctly; however, the returned file URI could not be fully utilized in the app.
+- Tags are dynamic (fetched from API + new creation supported).
