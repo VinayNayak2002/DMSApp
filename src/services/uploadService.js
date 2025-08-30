@@ -1,20 +1,26 @@
-// src/services/uploadService.js
-import { getToken, getUserId } from './storage';
-
-// Format date as dd-MM-yyyy
 const formatDate = (date) => {
+    if (!date) return '';
     const d = date.getDate().toString().padStart(2, '0');
     const m = (date.getMonth() + 1).toString().padStart(2, '0');
     const y = date.getFullYear();
     return `${d}-${m}-${y}`;
 };
 
-export const uploadDocument = async ({ documentDate, majorHead, minorHead, selectedTags, remarks, file }) => {
+export const uploadDocument = (auth) => async ({
+    documentDate,
+    majorHead,
+    minorHead,
+    selectedTags = [],
+    remarks = '',
+    file,
+}) => {
     try {
-        const token = await getToken();
-        const userId = await getUserId();
+        const token = auth?.token;
+        const userId = auth?.userId || ''; 
 
-        if (!token) throw new Error('No token found in storage');
+        if (!token) throw new Error('No authentication token found');
+
+        if (!file) throw new Error('No file selected for upload');
 
         const formData = new FormData();
 
@@ -25,12 +31,12 @@ export const uploadDocument = async ({ documentDate, majorHead, minorHead, selec
         });
 
         const dataPayload = {
-            major_head: majorHead,
-            minor_head: minorHead,
+            major_head: majorHead || '',
+            minor_head: minorHead || '',
             document_date: formatDate(documentDate),
             document_remarks: remarks,
             tags: selectedTags.map(tag => ({ tag_name: tag })),
-            user_id: userId || 'fallback_user',
+            user_id: userId,
         };
 
         formData.append('data', JSON.stringify(dataPayload));
@@ -45,7 +51,11 @@ export const uploadDocument = async ({ documentDate, majorHead, minorHead, selec
         );
 
         if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
-        return await response.json();
+
+        const result = await response.json();
+        console.log('Upload response:', result);
+
+        return result;
     } catch (error) {
         console.error('Upload error:', error);
         throw error;

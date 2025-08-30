@@ -11,9 +11,11 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { fetchTags } from '../services/tagService';
+import { downloadFile } from '../services/downloadService';
+import { useAuth } from '../context/authContext';
 import { searchDocuments } from '../services/searchService';
 
-export default function SearchScreen() {
+export default function SearchScreen({ navigation }) {
   // Filters
   const [majorHead, setMajorHead] = useState('');
   const [minorHead, setMinorHead] = useState('');
@@ -43,17 +45,21 @@ export default function SearchScreen() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const { token, userId } = useAuth();
+
   useEffect(() => {
     const load = async () => {
       try {
-        const tags = await fetchTags();
+        if (!token) return;
+        const tags = await fetchTags(token);
         setAllTags(tags || []);
       } catch (e) {
         console.log(e);
       }
     };
     load();
-  }, []);
+  }, [token]);
+
 
   useEffect(() => {
     const q = tagInput.trim().toLowerCase();
@@ -87,10 +93,15 @@ export default function SearchScreen() {
   };
 
   const handleSearch = async () => {
+    if (!token) {
+      console.error('Authentication token not found.');
+      return;
+    }
+
     try {
       setLoading(true);
 
-      const response = await searchDocuments({
+      const response = await searchDocuments({ token, userId })({
         majorHead,
         minorHead,
         fromDate,
@@ -98,20 +109,43 @@ export default function SearchScreen() {
         tags: selectedTags,
         start: 0,
         length: 20,
+        searchValue: '',
+        uploadedBy: '',
+        filterId: ''
       });
 
-      if (response?.status) {
-        setResults(response.data || []);
+      console.log('Search response received:', response);
+
+      if (response?.status && Array.isArray(response.data)) {
+        setResults(response.data);
       } else {
         setResults([]);
-        Alert.alert('No results', 'No documents matched your filters.');
+        console.log('Search returned no results or failed.');
       }
     } catch (e) {
-      Alert.alert('Error', 'Failed to fetch search results.');
+      console.error('Search failed:', e);
+      setResults([]);
     } finally {
       setLoading(false);
     }
   };
+
+
+
+  const handleDownload = async (item) => {
+    try {
+      if (!item.file_url) {
+        Alert.alert('Error', 'No file URL available for download.');
+        return;
+      }
+      const name = item.file_name || 'document.pdf';
+      await downloadFile(item.file_url, name);
+    } catch (error) {
+      console.error('Download failed:', error);
+      Alert.alert('Error', 'Failed to download file.');
+    }
+  };
+
 
   const renderHeader = () => (
     <View>
@@ -271,6 +305,30 @@ export default function SearchScreen() {
           <Text>Minor: {item.minor_head}</Text>
           <Text>Tags: {Array.isArray(item.tags) ? item.tags.map((t) => t.tag_name).join(', ') : ''}</Text>
           <Text>Date: {item.document_date}</Text>
+
+          <View style={{ flexDirection: 'row', marginTop: 8, gap: 8 }}>
+            <TouchableOpacity
+              style={[styles.btn, styles.primaryBtn, { flex: 1 }]}
+              onPress={() => {
+                const file = {
+                  file_url: item.file_url,
+                  file_name: item.file_name || 'document',
+                  mime_type: item.mime_type || 'application/pdf',
+                };
+                navigation.navigate('Preview', { file });
+              }}
+            >
+              <Text style={styles.primaryBtnText}>Preview</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.btn, styles.secondaryBtn, { flex: 1 }]}
+              onPress={() => handleDownload(item)}
+            >
+              <Text style={styles.secondaryBtnText}>Download</Text>
+            </TouchableOpacity>
+          </View>
+
         </View>
       )}
       contentContainerStyle={styles.container}

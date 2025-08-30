@@ -1,4 +1,3 @@
-// src/services/authService.js
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import jwtDecode from 'jwt-decode';
 
@@ -16,7 +15,7 @@ export const getUserIdFromToken = async () => {
     if (!token) return null;
     try {
         const decoded = jwtDecode(token);
-        return decoded.user_name || decoded.user_id; // adapt to your token payload
+        return decoded.user_name || decoded.user_id;
     } catch (err) {
         console.error('Invalid token:', err);
         return null;

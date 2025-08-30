@@ -1,4 +1,3 @@
-// src/screens/UploadScreen.js
 import React, { useState, useEffect } from 'react';
 import {
     View, Text, TouchableOpacity, TextInput, StyleSheet, Alert, ScrollView, FlatList, Platform
@@ -8,6 +7,7 @@ import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import { fetchTags } from '../services/tagService';
 import { uploadDocument } from '../services/uploadService';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../context/authContext';
 
 export default function UploadScreen() {
     const [documentDate, setDocumentDate] = useState(new Date());
@@ -31,17 +31,20 @@ export default function UploadScreen() {
 
     const navigation = useNavigation();
 
+    const { token, userId } = useAuth();
+
     useEffect(() => {
         const loadTags = async () => {
             try {
-                const tagsFromAPI = await fetchTags();
+                if (!token) return;
+                const tagsFromAPI = await fetchTags(token);
                 setAllTags(tagsFromAPI || []);
             } catch (err) {
                 console.error('Error fetching tags:', err);
             }
         };
         loadTags();
-    }, []);
+    }, [token]);
 
     useEffect(() => {
         if (majorHead === 'Personal') setMinorOptions(personalOptions);
@@ -106,19 +109,18 @@ export default function UploadScreen() {
         }
 
         try {
-            const result = await uploadDocument({
+            const result = await uploadDocument({ token, userId })({
                 documentDate,
                 majorHead,
                 minorHead,
                 selectedTags,
                 remarks,
-                file,
+                file: { ...file, name: 'document.pdf', uploaded_by: 'user' },
             });
 
             if (result.status) {
                 Alert.alert('Success', 'File uploaded successfully');
 
-                // Reset form
                 setDocumentDate(new Date());
                 setMajorHead('');
                 setMinorHead('');
@@ -128,7 +130,6 @@ export default function UploadScreen() {
                 setNewTag('');
                 setFilteredTags([]);
 
-                // Navigate back to Home
                 navigation.navigate('Home');
             } else {
                 Alert.alert('Upload Failed', result.message || 'Unknown error');
@@ -140,6 +141,7 @@ export default function UploadScreen() {
             Alert.alert('Error', 'Failed to upload file');
         }
     };
+
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -209,18 +211,25 @@ export default function UploadScreen() {
                 </View>
 
                 {filteredTags.length > 0 && (
-                    <FlatList
-                        data={filteredTags}
-                        keyExtractor={(item, index) => `${item}-${index}`}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity style={styles.suggestionItem} onPress={() => handleAddTag(item)}>
-                                <Text>{item}</Text>
-                            </TouchableOpacity>
-                        )}
-                    />
+                    <View style={{ maxHeight: 200, marginTop: 5, borderWidth: 1, borderColor: '#ccc', borderRadius: 8 }}>
+                        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingVertical: 5 }}>
+                            {filteredTags.map((item, index) => (
+                                <TouchableOpacity
+                                    key={`${item}-${index}`}
+                                    style={styles.suggestionItem}
+                                    onPress={() => handleAddTag(item)}
+                                >
+                                    <Text>{item}</Text>
+                                </TouchableOpacity>
+                            ))}
+                        </ScrollView>
+                    </View>
                 )}
 
-                <View style={styles.tagContainer}>
+
+
+
+                < View style={styles.tagContainer}>
                     {selectedTags.map(tag => (
                         <View key={tag} style={styles.tag}>
                             <Text style={styles.tagText}>{tag}</Text>
@@ -251,7 +260,7 @@ export default function UploadScreen() {
             <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
                 <Text style={styles.submitButtonText}>Submit</Text>
             </TouchableOpacity>
-        </ScrollView>
+        </ScrollView >
     );
 }
 
@@ -260,19 +269,19 @@ const styles = StyleSheet.create({
     title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, textAlign: 'center', color: '#333' },
     section: { marginBottom: 20 },
     label: { fontSize: 16, marginBottom: 8, fontWeight: '500' },
-    button: { backgroundColor: '#4CAF50', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, alignItems: 'center' },
+    button: { backgroundColor: '#2166e5', paddingVertical: 12, paddingHorizontal: 20, borderRadius: 8, alignItems: 'center' },
     buttonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
     optionButton: { padding: 10, borderRadius: 8, borderWidth: 1, borderColor: '#aaa', marginVertical: 4 },
-    optionButtonSelected: { backgroundColor: '#4CAF50', borderColor: '#4CAF50' },
+    optionButtonSelected: { backgroundColor: '#2166e5', borderColor: '#2196F3' },
     optionText: { textAlign: 'center', color: '#333' },
     optionTextSelected: { color: '#fff', fontWeight: '600' },
     tagRow: { flexDirection: 'row', alignItems: 'center' },
-    addButton: { backgroundColor: '#2196F3', padding: 10, marginLeft: 8, borderRadius: 8 },
+    addButton: { backgroundColor: '#2166e5', padding: 10, marginLeft: 8, borderRadius: 8 },
     tagContainer: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 },
     tag: { backgroundColor: '#eee', paddingHorizontal: 10, paddingVertical: 5, margin: 4, borderRadius: 8 },
     tagText: { fontSize: 14, color: '#333' },
     input: { borderWidth: 1, borderColor: '#aaa', padding: 10, borderRadius: 8 },
-    submitButton: { backgroundColor: '#FF5722', paddingVertical: 14, alignItems: 'center', borderRadius: 8 },
+    submitButton: { backgroundColor: '#ff3c00ff', paddingVertical: 14, alignItems: 'center', borderRadius: 8 },
     submitButtonText: { color: '#fff', fontWeight: '600', fontSize: 16 },
     suggestionItem: { padding: 10, backgroundColor: '#f9f9f9', borderBottomWidth: 1, borderColor: '#ddd' },
 });

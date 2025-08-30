@@ -20,12 +20,6 @@ export default function HomeScreen({ navigation }) {
                 <Text style={styles.buttonText}>Search Documents</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity
-                style={styles.button}
-                onPress={() => navigation.navigate('Preview')}
-            >
-                <Text style={styles.buttonText}>Preview Documents</Text>
-            </TouchableOpacity>
         </View>
     );
 }
@@ -46,7 +40,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#2166e5',
         paddingVertical: 14,
         paddingHorizontal: 30,
         borderRadius: 8,
