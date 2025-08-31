@@ -109,6 +109,39 @@ src/
 
 ---
 
+## Screenshots
+
+<table align="center">
+  <tr>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/1Login.png" alt="Login" width="250"/><br/>
+      <b>Login</b>
+    </td>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/2OtpSent.png" alt="OTP Sent" width="250"/><br/>
+      <b>OTP Sent</b>
+    </td>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/3EnterOtp.png" alt="Enter OTP" width="250"/><br/>
+      <b>Enter OTP</b>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/4Home.png" alt="Home" width="250"/><br/>
+      <b>Home</b>
+    </td>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/5Upload.png" alt="Upload" width="250"/><br/>
+      <b>Upload</b>
+    </td>
+    <td align="center" style="padding:25px">
+      <img src="./screenshots/6Search.png" alt="Search" width="250"/><br/>
+      <b>Search</b>
+    </td>
+  </tr>
+</table>
+
 ## Features Description
 
 ### Authentication (authContext.js)
